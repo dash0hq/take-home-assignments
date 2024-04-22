@@ -1,0 +1,16 @@
+{
+  "name": "example-nodejs-postgres",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "postgres": "docker run --rm --name dash0-assignment-postgres -p 5432:5432 -e POSTGRES_PASSWORD=examplepw -v ./initdb:/docker-entrypoint-initdb.d postgres"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.11.5"
+  }
+}

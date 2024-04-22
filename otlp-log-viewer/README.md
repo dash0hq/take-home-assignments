@@ -46,6 +46,7 @@ import {IExportLogsServiceRequest, IResourceLogs, ILogRecord} from "@opentelemet
    - Some styling/visuals
  - You are not meant to extend the Next.js app residing within this repository. Please create a new Next.js app in a 
    separate repository.
+ - Assume that this application will be deployed to production. Build it accordingly.
 
 ## References
 

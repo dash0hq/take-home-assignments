@@ -1,0 +1,5 @@
+CREATE TABLE example
+(
+    id  SERIAL PRIMARY KEY,
+    msg TEXT NOT NULL
+);
