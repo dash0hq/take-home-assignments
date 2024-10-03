@@ -1,0 +1,26 @@
+.logsTable {
+	width: 100%;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.body {
+	max-height: 400px;
+	overflow: auto;
+}
+
+.logsTable [role="row"] {
+	display: grid;
+	grid-template-columns: 1fr 2fr 2fr;
+}
+
+.header [role="row"] {
+	font-weight: bold;
+	border-bottom: 2px solid #ccc;
+}
+
+.logsTable [role="cell"],
+.logsTable [role="columnheader"] {
+	display: table-cell;
+	padding: 8px;
+}
