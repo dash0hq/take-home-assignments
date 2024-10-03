@@ -1,3 +1,19 @@
+.logRow {
+	cursor: pointer;
+}
+
+.logRow:hover,
+.logRow.active {
+	background: #f0f0f0;
+}
+
+.logRow + pre {
+	padding: 20px;
+	margin: 0;
+	background: #333;
+	color: #fff;
+}
+
 .logRow + .logRow {
 	border-top: 1px solid #ccc;
 }
