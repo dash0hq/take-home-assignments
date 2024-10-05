@@ -43,18 +43,20 @@ export default function otlpLogsToReportLogs(
 		return [];
 	}
 
-	return otlpLogs.resourceLogs.reduce((result, { scopeLogs }) => {
-		scopeLogs.forEach(({ logRecords }) => {
-			logRecords?.forEach((record) => {
-				result.push({
-					record,
-					body: otlpLogRecordBodyToString(record.body),
-					severity: record.severityText,
-					time: new Date(Number(record.timeUnixNano) / 1000),
+	return otlpLogs.resourceLogs
+		.reduce((result, { scopeLogs }) => {
+			scopeLogs.forEach(({ logRecords }) => {
+				logRecords?.forEach((record) => {
+					result.push({
+						record,
+						body: otlpLogRecordBodyToString(record.body),
+						severity: record.severityText,
+						time: new Date(Number(record.timeUnixNano) / 1e6),
+					});
 				});
 			});
-		});
 
-		return result;
-	}, [] as ReportLog[]);
+			return result;
+		}, [] as ReportLog[])
+		.sort((a, b) => (b.time as any) - (a.time as any));
 }
