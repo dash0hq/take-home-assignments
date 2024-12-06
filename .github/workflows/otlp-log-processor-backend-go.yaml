@@ -1,0 +1,20 @@
+name: OTLP Log Processor Backend Go
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'otlp-log-processor-backend-go/**'
+  pull_request:
+    paths:
+      - 'otlp-log-processor-backend-go/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+      - run: go build ./...
+        working-directory: 'otlp-log-processor-backend-go'
+      - run: go test ./...
+        working-directory: 'otlp-log-processor-backend-go'
