@@ -1,4 +1,4 @@
-# OTLP Log Parser (Java)
+# OTLP Log Parser (Go)
 
 ## Introduction
 This take-home assignment is designed to give you an opportunity to demonstrate your skills and experience in
@@ -32,7 +32,7 @@ For example for configured attribute key "foo" it should report:
 Your solution should take into account high throughput, both in number of messages and the number of records per message.
 
 ## Technology Constraints
-- Your Java program should compile using standard Oracle JDK, and be compatible with Java 21.
+- Your Go program should compile using standard Go SDK, and be compatible with Go 1.23.
 - Use any additional libraries you want and need.
 
 ## Notes
@@ -46,17 +46,17 @@ Your solution should take into account high throughput, both in number of messag
 
 Build the application:
 ```shell
-./gradlew assemble
+go build ./...
 ```
 
 Run the application:
 ```shell
-./gradlew bootRun
+go run ./...
 ```
 
 Run tests
 ```shell
-./gradlew check
+go test ./...
 ```
 
 ## References
