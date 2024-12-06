@@ -1,0 +1,22 @@
+name: OTLP Log Processor Backend Java
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'otlp-log-processor-backend-java/**'
+  pull_request:
+    paths:
+      - 'otlp-log-processor-backend-java/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+          cache: 'gradle'
+      - run: ./gradlew check
+        working-directory: 'otlp-log-processor-backend-java'
