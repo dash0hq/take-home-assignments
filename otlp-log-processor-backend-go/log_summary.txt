@@ -1,0 +1,13 @@
+Log Summary
+attributeKey = "foo"
+Value: "resource_value"	Count: 8
+Value: "scope_value"	Count: 8
+Value: "log_value"	Count: 8
+Value: "unknown"	Count: 4
+
+Log Summary
+attributeKey = "foo"
+Value: "resource_value"	Count: 2
+Value: "scope_value"	Count: 2
+Value: "log_value"	Count: 2
+Value: "unknown"	Count: 1

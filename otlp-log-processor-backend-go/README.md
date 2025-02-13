@@ -54,10 +54,56 @@ Run the application:
 go run ./...
 ```
 
-Run tests
+Run tests:
 ```shell
 go test ./...
 ```
+
+Run benchmarks:
+```shell
+go test -bench=./...
+```
+
+## Making requests to the grpc server via the command line
+
+Check if `grpcurl` is available:
+```shell
+grpcurl -version
+
+# Output
+grpcurl 1.9.2
+```
+
+*Ressource: https://github.com/fullstorydev/grpcurl*
+
+*Should you not have access to `homebrew` or do not want to install `grpcurl` on your local machine,
+then please follow the docker approach below.*
+
+### **Homebrew**
+Install `grpcurl`
+```shell
+brew install grpcurl
+```
+Usage:
+```shell
+grpcurl -plaintext -d @ localhost:4317 opentelemetry.proto.collector.logs.v1.LogsService/Export < log_request.json
+```
+
+### **Docker**
+Pull the docker image:
+```shell
+docker pull fullstorydev/grpcurl:latest
+```
+Usage:
+```shell
+# Mac / Windows
+cat log_request.json | docker run --rm -i fullstorydev/grpcurl:latest -plaintext -d @ host.docker.internal:4317 opentelemetry.proto.collector.logs.v1.LogsService/Export
+
+# Linux
+cat log_request.json | docker run --rm --network="host" -i fullstorydev/grpcurl:latest -plaintext -d @ localhost:4317 opentelemetry.proto.collector.logs.v1.LogsService/Export
+```
+*Due to how docker operates on Linux compared to Mac, a different approach is needed to make the request.
+I do not have a linux machine to test this with, so please adjust accordingly if needed.*
 
 ## References
 

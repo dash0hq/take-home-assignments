@@ -5,16 +5,22 @@ import (
 	"log/slog"
 
 	collogspb "go.opentelemetry.io/proto/otlp/collector/logs/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type dash0LogsServiceServer struct {
-	addr string
+	addr      string
+	processor *LogProcessor
 
 	collogspb.UnimplementedLogsServiceServer
 }
 
-func newServer(addr string) collogspb.LogsServiceServer {
-	s := &dash0LogsServiceServer{addr: addr}
+func newServer(addr string, processor *LogProcessor) collogspb.LogsServiceServer {
+	s := &dash0LogsServiceServer{
+		addr:      addr,
+		processor: processor,
+	}
 	return s
 }
 
@@ -22,7 +28,9 @@ func (l *dash0LogsServiceServer) Export(ctx context.Context, request *collogspb.
 	slog.DebugContext(ctx, "Received ExportLogsServiceRequest")
 	logsReceivedCounter.Add(ctx, 1)
 
-	// Do something with the logs
+	if err := l.processor.ProcessLogs(ctx, request); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	return &collogspb.ExportLogsServiceResponse{}, nil
 }
