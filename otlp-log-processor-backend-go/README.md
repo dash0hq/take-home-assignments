@@ -31,6 +31,9 @@ For example for configured attribute key "foo" it should report:
 
 Your solution should take into account high throughput, both in number of messages and the number of records per message.
 
+Feel free to use the existing scaffoling in this folder, for example by fleshing out the implementation of the `Export`
+method in `logs_service.go`. Of course, you can also change anything else as you see fit.
+
 ## Technology Constraints
 - Your Go program should compile using standard Go SDK, and be compatible with Go 1.23.
 - Use any additional libraries you want and need.
