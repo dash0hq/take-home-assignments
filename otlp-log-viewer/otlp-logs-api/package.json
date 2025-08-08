@@ -12,20 +12,20 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@faker-js/faker": "^8.3.1",
-    "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/otlp-transformer": "^0.46.0",
-    "next": "14.0.4",
-    "react": "^18",
-    "react-dom": "^18"
+    "@faker-js/faker": "^9.9.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/otlp-transformer": "^0.203.0",
+    "next": "15.4.6",
+    "react": "^19",
+    "react-dom": "^19"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.4",
-    "prettier": "3.1.1",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.6",
+    "prettier": "3.6.2",
     "typescript": "^5"
   }
 }
