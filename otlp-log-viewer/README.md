@@ -1,6 +1,7 @@
 # OTLP Log Viewer
 
 ## Introduction
+
 This take-home assignment is designed to give you an opportunity to demonstrate your skills and experience in
 building a web application. We expect you to spend 3-4 hours on this assignment. If you find yourself spending more time
 than that, please stop and submit what you have. We are not looking for a complete solution, but rather a demonstration
@@ -10,43 +11,81 @@ To submit your solution, please create a public GitHub repository and send us th
 with instructions on how to run your application. Bonus points for a deployment to Vercel.
 
 ## Overview
+
 The goal of this assignment is to build a simple web application that renders a list of [log records](https://opentelemetry.io/docs/concepts/signals/logs/) from an OTLP logs
 endpoint. For an overview of the expected capabilities, see the [Expected Capabilities](#expected-capabilities) section
 below.
 
 ## OTLP Logs HTTP Endpoint
+
 The OTLP logs HTTP endpoint is available at https://take-home-assignment-otlp-logs-api.vercel.app/api/logs. The endpoint
 returns an OTLP logs data structure. You will use this endpoint as a data source within the assignment.
 
 You will most likely need TypeScript types for the OTLP logs data structure:
 
 ```typescript
-import {IExportLogsServiceRequest, IResourceLogs, ILogRecord} from "@opentelemetry/otlp-transformer";
+import {
+  IExportLogsServiceRequest,
+  IResourceLogs,
+  ILogRecord,
+} from "@opentelemetry/otlp-transformer";
 ```
 
 ## Expected Capabilities
- - Retrieve the list of log records from the OTLP logs HTTP endpoint mentioned above (at runtime).
- - Render the list of log records in a table with the following columns:
-   - Severity
-   - Time
-   - Body
- - When clicking a log record, expand the row and show all attributes associated with the log record.
- - Render a histogram visualizing the distribution of log records.
-   - X-Axis: Time
-   - Y-Axis: Count
+
+- Retrieve the list of log records from the OTLP logs HTTP endpoint mentioned above (at runtime).
+- Render the list of log records in a table with the following columns:
+  - Severity
+  - Time
+  - Body
+- When clicking a log record, expand the row and show all attributes associated with the log record.
+- Render a histogram visualizing the distribution of log records.
+  - X-Axis: Time
+  - Y-Axis: Count
+
+## Extended Capabilities
+
+This section contains optional bonus challenges. Tackle these after completing the core expected capabilities, prioritizing based on your time. We recommend attempting 1-2 of these within the 3-4 hour timeframe.
+
+### 1. Performance Optimization for Large Datasets
+
+Enhance the application to handle a few hundreds log records efficiently.
+
+**Focus:** We're interested in your performance analysis methodology, not just library usage. Show us how you measure and optimize performance.
+
+### 2. Advanced Filtering
+
+Extend the list with a filter to support multiple simultaneous selections (e.g. severity).
+
+- Multi-select filtering: Allow selecting multiple severity levels at once
+- Persist filter selections to URL query parameters (shareable links)
+- Update the histogram visualization to reflect the filtered dataset
+
+**Focus:** State synchronization between UI, URL, and data.
+
+### 3. Log Grouping by Resource/Service
+
+Implement a grouped view that organizes logs by their parent resource (service).
+
+- Create a "Group by Service" toggle/mode showing collapsible resource groups
+- Maintain filtering and expandable row functionality in grouped mode
+
+**Focus:** Data transformation, state architecture, TypeScript usage for nested types.
 
 ## Technology Constraints
- - Use React, TypeScript and Next.js with the app router.
- - Use any additional libraries you want and need.
+
+- Use React, TypeScript and Next.js with the app router.
+- Use any additional libraries you want and need.
 
 ## Notes
- - As this assignment is for the role of a Senior Product Engineer, we expect you to pay some attention to the experience and design of the solution. For example:
-   - Structure consistent with established solutions in the observability domain
-   - Consistent terminology usage
-   - Some styling/visuals
- - You are not meant to extend the Next.js app residing within this repository. Please create a new Next.js app in a 
-   separate repository.
- - Assume that this application will be deployed to production. Build it accordingly.
+
+- As this assignment is for the role of a Senior Product Engineer, we expect you to pay some attention to the experience and design of the solution. For example:
+  - Structure consistent with established solutions in the observability domain
+  - Consistent terminology usage
+  - Some styling/visuals
+- You are not meant to extend the Next.js app residing within this repository. Please create a new Next.js app in a
+  separate repository.
+- Assume that this application will be deployed to production. Build it accordingly.
 
 ## References
 
