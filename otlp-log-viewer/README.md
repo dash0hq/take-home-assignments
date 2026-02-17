@@ -45,7 +45,7 @@ import {
 
 ## Extended Capabilities
 
-This section contains optional bonus challenges. Tackle these after completing the core expected capabilities, prioritizing based on your time. We recommend attempting 1-2 of these within the 3-4 hour timeframe.
+This section contains optional bonus challenges. Tackle these after completing the core expected capabilities, prioritizing based on your time.
 
 ### 1. Performance Optimization for Large Datasets
 
