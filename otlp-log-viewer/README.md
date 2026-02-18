@@ -33,6 +33,8 @@ import {
 
 ## Expected Capabilities
 
+#### Basic Log List View
+
 - Retrieve the list of log records from the OTLP logs HTTP endpoint mentioned above (at runtime).
 - Render the list of log records in a table with the following columns:
   - Severity
@@ -43,32 +45,14 @@ import {
   - X-Axis: Time
   - Y-Axis: Count
 
-## Extended Capabilities
+**Focus:** Data fetching, state management, component design, TypeScript usage.
 
-This section contains optional bonus challenges. Tackle these after completing the core expected capabilities, prioritizing based on your time.
-
-### 1. Performance Optimization for Large Datasets
-
-Enhance the application to handle a few hundreds log records efficiently.
-
-**Focus:** We're interested in your performance analysis methodology, not just library usage. Show us how you measure and optimize performance.
-
-### 2. Advanced Filtering
-
-Extend the list with a filter to support multiple simultaneous selections (e.g. severity).
-
-- Multi-select filtering: Allow selecting multiple severity levels at once
-- Persist filter selections to URL query parameters (shareable links)
-- Update the histogram visualization to reflect the filtered dataset
-
-**Focus:** State synchronization between UI, URL, and data.
-
-### 3. Log Grouping by Resource/Service
+#### Log Grouping by Resource/Service
 
 Implement a grouped view that organizes logs by their parent resource (service).
 
-- Create a "Group by Service" toggle/mode showing collapsible resource groups
-- Maintain filtering and expandable row functionality in grouped mode
+- Create a "Group by Service" toggle/mode to collapse resource groups.
+- Render the list of now grouped log records.
 
 **Focus:** Data transformation, state architecture, TypeScript usage for nested types.
 
@@ -92,3 +76,13 @@ Implement a grouped view that organizes logs by their parent resource (service).
 - [OpenTelemetry Logs](https://opentelemetry.io/docs/concepts/signals/logs/)
 - [OpenTelemetry Protocol (OTLP)](https://github.com/open-telemetry/opentelemetry-proto)
 - [OTLP Logs Examples](https://github.com/open-telemetry/opentelemetry-proto/blob/main/examples/logs.json)
+
+## Extended Capabilities
+
+The following task is not meant to be implemented, but rather be prepared for an interview discussion. Please think about how you would implement the following feature and be prepared to discuss it during the interview.
+
+### 2. Advanced Filtering
+
+Extend the list with filter support. Please assume that filtering is done in the frontend. The filtered state should be sharable with your colleagues.
+
+**Focus:** State handling, dealing with vague requirements, understanding of the data structure.
