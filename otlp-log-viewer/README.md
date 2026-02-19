@@ -1,28 +1,77 @@
 # OTLP Log Viewer
 
-## Introduction
+## Quick Start
 
-This take-home assignment is designed to give you an opportunity to demonstrate your skills and experience in
-building a web application. We expect you to spend 3-4 hours on this assignment. If you find yourself spending more time
-than that, please stop and submit what you have. We are not looking for a complete solution, but rather a demonstration
-of your skills and experience.
+| | |
+|---|---|
+| **Time** | 3-4 hours (submit what you have) |
+| **Stack** | React, TypeScript, Next.js (App Router) |
+| **Submit** | Public GitHub repo + README |
+| **Bonus** | Vercel deployment |
 
-To submit your solution, please create a public GitHub repository and send us the link. Please include a `README.md` file
-with instructions on how to run your application. Bonus points for a deployment to Vercel.
+> **Create a NEW repository.** Do not extend this codebase.
 
-## Overview
+---
 
-The goal of this assignment is to build a simple web application that renders a list of [log records](https://opentelemetry.io/docs/concepts/signals/logs/) from an OTLP logs
-endpoint. For an overview of the expected capabilities, see the [Expected Capabilities](#expected-capabilities) section
-below.
+## Part 1: Coding Assignment
 
-## OTLP Logs HTTP Endpoint
+### Scenario
 
-The OTLP logs HTTP endpoint is available at https://take-home-assignment-otlp-logs-api.vercel.app/api/logs. The endpoint
-returns an OTLP logs data structure. You will use this endpoint as a data source within the assignment.
+Your team needs a web application to visualize [OTLP log records](https://opentelemetry.io/docs/concepts/signals/logs/) from a backend service. Engineers should be able to quickly scan logs, drill into details, and understand log distribution patterns across services.
 
-You will most likely need TypeScript types for the OTLP logs data structure:
+### Your Task
 
+Build a log viewer that fetches data from the provided API endpoint and addresses these requirements:
+
+1. **Log List View** — Display logs in a table (Severity, Time, Body) with expandable rows showing all attributes
+2. **Histogram** — Visualize log distribution over time (X: Time, Y: Count)
+3. **Group by Service** — Add a toggle that switches between flat list view and grouped view (organized by parent resource with collapsible groups)
+
+### What We're Looking For
+
+- Data fetching and state management patterns
+- Data transformation for nested OTLP types
+- Component architecture and TypeScript usage
+- UI/UX consistent with observability domain conventions
+- Production-ready code organization
+
+---
+
+## Part 2: Interview Discussion (Do Not Code)
+
+### Scenario
+
+Users of the log viewer have started asking for filtering capabilities. The product brief is intentionally vague:
+
+> "We need a way for users to filter logs and share interesting findings with teammates."
+
+### Your Task
+
+As the Senior Product Engineer (Frontend), you're asked to help shape the approach before implementation begins.
+
+During the interview, walk us through:
+
+1. **Clarifying the problem** — What questions would you ask product, backend, and users?
+2. **Structuring the solution** — How would you design the UI and frontend architecture?
+3. **Identifying trade-offs** — What key decisions would you make, and what are the pros and cons?
+
+### What We're Looking For
+
+- Ability to clarify ambiguity in product requirements
+- Structural thinking about UI architecture, components, and data flow
+- Articulating trade-offs (complexity vs. maintainability, performance vs. UX)
+- Bonus: Observability-aware thinking
+
+---
+
+## API Reference
+
+**Endpoint:**
+```
+GET https://take-home-assignment-otlp-logs-api.vercel.app/api/logs
+```
+
+**TypeScript Types:**
 ```typescript
 import {
   IExportLogsServiceRequest,
@@ -31,58 +80,28 @@ import {
 } from "@opentelemetry/otlp-transformer";
 ```
 
-## Expected Capabilities
+**Data Structure:**
+```
+IExportLogsServiceRequest
+└── resourceLogs[]
+    ├── resource.attributes[]
+    │   ├── service.name
+    │   ├── service.namespace
+    │   └── service.version
+    └── scopeLogs[]
+        └── logRecords[]
+            ├── timeUnixNano
+            ├── severityText / severityNumber
+            ├── body
+            └── attributes[]
+```
 
-#### Basic Log List View
+> The API generates random mock data on each request.
 
-- Retrieve the list of log records from the OTLP logs HTTP endpoint mentioned above (at runtime).
-- Render the list of log records in a table with the following columns:
-  - Severity
-  - Time
-  - Body
-- When clicking a log record, expand the row and show all attributes associated with the log record.
-- Render a histogram visualizing the distribution of log records.
-  - X-Axis: Time
-  - Y-Axis: Count
-
-**Focus:** Data fetching, state management, component design, TypeScript usage.
-
-#### Log Grouping by Resource/Service
-
-Implement a grouped view that organizes logs by their parent resource (service).
-
-- Create a "Group by Service" toggle/mode to collapse resource groups.
-- Render the list of now grouped log records.
-
-**Focus:** Data transformation, state architecture, TypeScript usage for nested types.
-
-## Technology Constraints
-
-- Use React, TypeScript and Next.js with the app router.
-- Use any additional libraries you want and need.
-
-## Notes
-
-- As this assignment is for the role of a Senior Product Engineer, we expect you to pay some attention to the experience and design of the solution. For example:
-  - Structure consistent with established solutions in the observability domain
-  - Consistent terminology usage
-  - Some styling/visuals
-- You are not meant to extend the Next.js app residing within this repository. Please create a new Next.js app in a
-  separate repository.
-- Assume that this application will be deployed to production. Build it accordingly.
+---
 
 ## References
 
-- [OpenTelemetry Logs](https://opentelemetry.io/docs/concepts/signals/logs/)
-- [OpenTelemetry Protocol (OTLP)](https://github.com/open-telemetry/opentelemetry-proto)
-- [OTLP Logs Examples](https://github.com/open-telemetry/opentelemetry-proto/blob/main/examples/logs.json)
-
-## Extended Capabilities
-
-The following task is not meant to be implemented, but rather be prepared for an interview discussion. Please think about how you would implement the following feature and be prepared to discuss it during the interview.
-
-### 2. Advanced Filtering
-
-Extend the list with filter support. Please assume that filtering is done in the frontend. The filtered state should be sharable with your colleagues.
-
-**Focus:** State handling, dealing with vague requirements, understanding of the data structure.
+- [OpenTelemetry Logs Concepts](https://opentelemetry.io/docs/concepts/signals/logs/)
+- [OTLP Protocol](https://github.com/open-telemetry/opentelemetry-proto)
+- [OTLP Logs Example JSON](https://github.com/open-telemetry/opentelemetry-proto/blob/main/examples/logs.json)
