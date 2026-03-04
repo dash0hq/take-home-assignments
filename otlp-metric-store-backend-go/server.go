@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
-	collogspb "go.opentelemetry.io/proto/otlp/collector/logs/v1"
+	colmetricspb "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -25,17 +25,16 @@ var (
 const name = "dash0.com/otlp-log-processor-backend"
 
 var (
-	tracer              = otel.Tracer(name)
-	meter               = otel.Meter(name)
-	logger              = otelslog.NewLogger(name)
-	logsReceivedCounter metric.Int64Counter
+	meter                  = otel.Meter(name)
+	logger                 = otelslog.NewLogger(name)
+	metricsReceivedCounter metric.Int64Counter
 )
 
 func init() {
 	var err error
-	logsReceivedCounter, err = meter.Int64Counter("com.dash0.homeexercise.logs.received",
-		metric.WithDescription("The number of logs received by otlp-log-processor-backend"),
-		metric.WithUnit("{log}"))
+	metricsReceivedCounter, err = meter.Int64Counter("com.dash0.homeexercise.metrics.received",
+		metric.WithDescription("The number of metrics received by otlp-metrics-processor-backend"),
+		metric.WithUnit("{metric}"))
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +74,7 @@ func run() (err error) {
 		grpc.MaxRecvMsgSize(*maxReceiveMessageSize),
 		grpc.Creds(insecure.NewCredentials()),
 	)
-	collogspb.RegisterLogsServiceServer(grpcServer, newServer(*listenAddr))
+	colmetricspb.RegisterMetricsServiceServer(grpcServer, newServer(*listenAddr, nil))
 
 	slog.Debug("Starting gRPC server")
 

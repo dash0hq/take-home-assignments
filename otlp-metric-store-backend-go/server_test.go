@@ -6,39 +6,39 @@ import (
 	"net"
 	"testing"
 
-	collogspb "go.opentelemetry.io/proto/otlp/collector/logs/v1"
-	otellogs "go.opentelemetry.io/proto/otlp/logs/v1"
+	colmetricspb "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
+	otelmetrics "go.opentelemetry.io/proto/otlp/metrics/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 )
 
-func TestLogsServiceServer_Export(t *testing.T) {
+func TestMetricsServiceServer_Export(t *testing.T) {
 	ctx := context.Background()
 
 	client, closer := server()
 	defer closer()
 
 	type expectation struct {
-		out *collogspb.ExportLogsServiceResponse
+		out *colmetricspb.ExportMetricsServiceResponse
 		err error
 	}
 
 	tests := map[string]struct {
-		in       *collogspb.ExportLogsServiceRequest
+		in       *colmetricspb.ExportMetricsServiceRequest
 		expected expectation
 	}{
 		"Must_Success": {
-			in: &collogspb.ExportLogsServiceRequest{
-				ResourceLogs: []*otellogs.ResourceLogs{
+			in: &colmetricspb.ExportMetricsServiceRequest{
+				ResourceMetrics: []*otelmetrics.ResourceMetrics{
 					{
-						ScopeLogs: []*otellogs.ScopeLogs{},
-						SchemaUrl: "dash0.com/otlp-log-processor-backend",
+						ScopeMetrics: []*otelmetrics.ScopeMetrics{},
+						SchemaUrl:    "dash0.com/otlp-metrics-processor-backend",
 					},
 				},
 			},
 			expected: expectation{
-				out: &collogspb.ExportLogsServiceResponse{},
+				out: &colmetricspb.ExportMetricsServiceResponse{},
 				err: nil,
 			},
 		},
@@ -53,7 +53,7 @@ func TestLogsServiceServer_Export(t *testing.T) {
 				}
 			} else {
 				expectedPartialSuccess := tt.expected.out.GetPartialSuccess()
-				if expectedPartialSuccess.GetRejectedLogRecords() != out.GetPartialSuccess().GetRejectedLogRecords() ||
+				if expectedPartialSuccess.GetRejectedDataPoints() != out.GetPartialSuccess().GetRejectedDataPoints() ||
 					expectedPartialSuccess.GetErrorMessage() != out.GetPartialSuccess().GetErrorMessage() {
 					t.Errorf("Out -> \nWant: %q\nGot : %q", tt.expected.out, out)
 				}
@@ -63,20 +63,20 @@ func TestLogsServiceServer_Export(t *testing.T) {
 	}
 }
 
-func server() (collogspb.LogsServiceClient, func()) {
+func server() (colmetricspb.MetricsServiceClient, func()) {
 	addr := "localhost:4317"
 	buffer := 101024 * 1024
 	lis := bufconn.Listen(buffer)
 
 	baseServer := grpc.NewServer()
-	collogspb.RegisterLogsServiceServer(baseServer, newServer(addr))
+	colmetricspb.RegisterMetricsServiceServer(baseServer, newServer(addr, nil))
 	go func() {
 		if err := baseServer.Serve(lis); err != nil {
 			log.Printf("error serving server: %v", err)
 		}
 	}()
 
-	conn, err := grpc.NewClient(addr,
+	conn, err := grpc.NewClient("passthrough://bufnet",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 			return lis.Dial()
 		}), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -92,7 +92,7 @@ func server() (collogspb.LogsServiceClient, func()) {
 		baseServer.Stop()
 	}
 
-	client := collogspb.NewLogsServiceClient(conn)
+	client := colmetricspb.NewMetricsServiceClient(conn)
 
 	return client, closer
 }
