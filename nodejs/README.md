@@ -17,7 +17,7 @@ all while being designed with scale in mind.
 
 ### Log Ingestion Endpoint
 
-* `POST /logs/json` - Accepts a batch of log entries in JSON format.
+* `POST /logs/json` - Accepts a batch of log entries as a JSON array of objects and each object is a log record.
 * Validate the payload
 * Push them onto an internal queue
 
@@ -35,7 +35,7 @@ all while being designed with scale in mind.
 
 ### Log Processing
 * A background worker drains the queue and "processes" each log entry
-  * They should be logged to STOUT
+  * They should be logged to STDOUT
   * Simulate a processing delay per log entry to mimic real-world conditions
 * The worker should process entries concurrently, but with a configurable concurrency limit (e.g. max 5 at a time).
 * If a log entry fails processing, it should be retried up to 3 times
