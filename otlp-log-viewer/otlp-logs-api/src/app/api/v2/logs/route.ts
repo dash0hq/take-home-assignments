@@ -7,6 +7,16 @@ import {
 
 export const runtime = "edge";
 
+// Responses are deterministic within this window: same bucket -> same seed
+// and same time bounds -> identical payload. Window rolls forward over time.
+const SEED_WINDOW_MS = 10_000;
+
+// Reference date for the active window, set per-request in generatedMockedData.
+// Pins faker.date.* anchor points to the window instead of live `now` so the
+// payload stays byte-identical across calls within the same window. Safe as a
+// module-scoped var because generation is fully synchronous (no awaits).
+let windowRefDate = new Date(0);
+
 export async function GET() {
 	return Response.json(generatedMockedData(), {
 		headers: {
@@ -138,7 +148,7 @@ function generateJsonBody(): string {
 						resource: faker.helpers.arrayElement(httpPaths),
 						retryable: faker.datatype.boolean(),
 						timestamp: faker.date
-							.recent({ days: 1 })
+							.recent({ days: 1, refDate: windowRefDate })
 							.toISOString(),
 					},
 				},
@@ -183,7 +193,7 @@ function generateJsonBody(): string {
 				metadata: {
 					producer: `${faker.word.noun()}-service`,
 					timestamp: faker.date
-						.recent({ days: 1 })
+						.recent({ days: 1, refDate: windowRefDate })
 						.toISOString(),
 					correlationId: faker.string.uuid(),
 				},
@@ -204,7 +214,7 @@ function generateLongBody(): string {
 
 		`Database migration ${faker.system.semver()} completed with warnings. ` +
 			`Applied ${faker.number.int({ min: 1, max: 15 })} of ${faker.number.int({ min: 15, max: 30 })} pending migrations. ` +
-			`Skipped migrations: ${Array.from({ length: faker.number.int({ min: 1, max: 4 }) }, () => `${faker.date.recent({ days: 30 }).toISOString().slice(0, 10)}_${faker.word.verb()}_${faker.word.noun()}_table`).join(", ")}. ` +
+			`Skipped migrations: ${Array.from({ length: faker.number.int({ min: 1, max: 4 }) }, () => `${faker.date.recent({ days: 30, refDate: windowRefDate }).toISOString().slice(0, 10)}_${faker.word.verb()}_${faker.word.noun()}_table`).join(", ")}. ` +
 			`Total rows affected: ${faker.number.int({ min: 0, max: 100000 })}. ` +
 			`Execution time: ${faker.number.float({ min: 0.5, max: 120, fractionDigits: 2 })}s. ` +
 			`Connection pool: ${faker.number.int({ min: 1, max: 20 })} active, ${faker.number.int({ min: 0, max: 10 })} idle. ` +
@@ -217,7 +227,7 @@ function generateLongBody(): string {
 			`P99 latency: ${faker.number.int({ min: 200, max: 5000 })}ms (SLO: 500ms). ` +
 			`GC pause time: ${faker.number.float({ min: 10, max: 500, fractionDigits: 1 })}ms. ` +
 			`Thread pool: ${faker.number.int({ min: 50, max: 200 })} active / ${faker.number.int({ min: 200, max: 500 })} max. ` +
-			`Last successful deploy: ${faker.date.recent({ days: 7 }).toISOString()}. Pod: ${faker.word.noun()}-${faker.string.alphanumeric(8)}.`,
+			`Last successful deploy: ${faker.date.recent({ days: 7, refDate: windowRefDate }).toISOString()}. Pod: ${faker.word.noun()}-${faker.string.alphanumeric(8)}.`,
 	]);
 	return context;
 }
@@ -355,6 +365,14 @@ function generateLogAttributes(
 }
 
 function generatedMockedData(): IExportLogsServiceRequest {
+	// Seed and time bounds both derive from the current window bucket, so any
+	// calls landing in the same window produce an identical payload.
+	const bucket = Math.floor(Date.now() / SEED_WINDOW_MS);
+	faker.seed(bucket);
+	const windowEnd = bucket * SEED_WINDOW_MS;
+	const windowStart = windowEnd - 24 * 60 * 60 * 1000;
+	windowRefDate = new Date(windowEnd);
+
 	const resourceCount = faker.number.int({ min: 8, max: 20 });
 	const resourceLogs: IResourceLogs[] = new Array(resourceCount)
 		.fill(0)
@@ -413,10 +431,8 @@ function generatedMockedData(): IExportLogsServiceRequest {
 							},
 							logRecords: faker.date
 								.betweens({
-									from: new Date(
-										Date.now() - 24 * 60 * 60 * 1000
-									),
-									to: new Date(),
+									from: new Date(windowStart),
+									to: new Date(windowEnd),
 									count: faker.number.int({
 										min: 5,
 										max: 50,
