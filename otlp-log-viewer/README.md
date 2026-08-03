@@ -23,7 +23,7 @@ Your team needs a web application to visualize [OTLP log records](https://opente
 
 Build a log viewer that fetches data from the provided API endpoint and addresses these requirements:
 
-1. **Log List View** — Display logs in a table (Severity, Time, Body) with expandable rows showing all attributes
+1. **Log List View** — Display logs in a table (Severity, Time, Body) with a mechanism to view the details of a log row (including all attributes)
 2. **Histogram** — Visualize log distribution over time (X: Time, Y: Count)
 3. **Group by Service** — Add a toggle that switches between flat list view and grouped view (organized by parent resource with collapsible groups)
 
