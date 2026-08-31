@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 
 	colmetricspb "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
 	otelmetrics "go.opentelemetry.io/proto/otlp/metrics/v1"
@@ -69,7 +70,7 @@ func server() (colmetricspb.MetricsServiceClient, func()) {
 	lis := bufconn.Listen(buffer)
 
 	baseServer := grpc.NewServer()
-	colmetricspb.RegisterMetricsServiceServer(baseServer, newServer(addr, nil))
+	colmetricspb.RegisterMetricsServiceServer(baseServer, newServer(addr, nil, newSeriesCache(10*time.Minute)))
 	go func() {
 		if err := baseServer.Serve(lis); err != nil {
 			log.Printf("error serving server: %v", err)

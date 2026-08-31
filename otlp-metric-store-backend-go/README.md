@@ -57,6 +57,207 @@ Run tests
 go test ./...
 ```
 
+## Assumptions
+
+- **Metric metadata cardinality is low relative to data-point volume.**
+  A relatively small number of metric series produces a much larger number of
+  data points. Storing shared metadata separately therefore reduces significant
+  duplication.
+
+- **Changes to identifying metadata create a new metric series.**
+  If the resource, scope, metric type, or attributes that identify a series change,
+  the new combination is treated as a separate series.
+
+- **Existing metric tables may have readers outside this service.**
+  Dashboards, alerting systems, ad-hoc queries, or other services may depend on
+  the current ClickHouse tables. To avoid disrupting unknown consumers, the
+  existing schemas are left unchanged.
+
+- **The normalized implementation currently covers Gauge and Sum.**
+  These are the metric types supported by the existing ingestion path. The same
+  approach can be extended to the remaining OTLP metric types later.
+
+
+## Design Decisions
+
+### Backward-compatible schema evolution
+
+The existing metric tables remain unchanged.
+
+The normalized model is introduced through new tables:
+
+- `otel_metrics_metadata`
+- `otel_metrics_gauge_v2`
+- `otel_metrics_sum_v2`
+
+During migration, the service writes to both the existing and normalized schemas.
+
+This allows the new design to be introduced and validated without forcing
+existing consumers to migrate immediately.
+
+Once downstream consumers have moved to the normalized schema, the legacy write
+path can be retired.
+
+
+### Metadata normalization
+
+The existing schema repeats resource, scope, metric, and attribute metadata on
+every data point.
+
+The new model separates:
+
+- **series-level metadata**, stored once and referenced through `MetadataID`
+- **data-point values**, stored separately
+
+This reduces repeated storage while preserving the relationship between a metric
+series and its data points.
+
+
+### Metric identity
+
+`MetadataID` represents a distinct metric series.
+
+The identity is based on the fields that materially distinguish one series from
+another, including:
+
+- `MetricType`
+- `MetricName`
+- `MetricUnit`
+- `ResourceAttributes`
+- `ScopeName`
+- `ScopeVersion`
+- `ScopeAttributes`
+- `Attributes`
+- `AggregationTemporality` for Sum metrics
+- `IsMonotonic` for Sum metrics
+
+The following fields do not create a new series identity:
+
+- `ResourceSchemaUrl`
+- `ScopeSchemaUrl`
+- `ScopeDroppedAttrCount`
+- `MetricDescription`
+- `StartTimeUnix`
+- `TimeUnix`
+- `Value`
+- `Flags`
+
+For example, a Gauge and a Sum with the same metric name are still different
+metric series and therefore require separate identities.
+
+Fields that describe or observe a metric, such as metric description, timestamps,
+values, and flags, do not create a new series identity.
+
+`MetadataID` is generated deterministically from the metric identity.
+
+The implementation uses `city.Hash64`.
+
+
+### Query model
+
+The normalized model is intended to support retrieving metric series over a time
+range.
+
+> **Product / query-semantics note**
+>
+> Before finalizing the production query model, I would validate the expected
+> workflow with Product and downstream consumers.
+>
+> A time range alone is unlikely to be sufficient for most meaningful metric
+> queries. Users will normally also need to identify what they want to observe,
+> for example through service name, metric name, metric type, attributes, or a
+> previously selected metric series.
+>
+> These answers would help determine the most appropriate production query and
+> storage model.
+
+
+### Series cache
+
+An in-memory series cache reduces unnecessary repeated metadata writes for
+frequently observed metric series.
+
+The cache is an optimization only and is not required for correctness.
+
+A restart or multiple service replicas may result in some additional metadata
+writes, but data-point ingestion continues normally.
+
+
+## Migration Strategy
+
+The migration follows an expand-and-migrate approach:
+
+    Existing schema
+          |
+          v
+    Add normalized schema
+          |
+          v
+    Dual-write old + new
+          |
+          v
+    Validate normalized data
+          |
+          v
+    Migrate consumers
+          |
+          v
+    Stop legacy writes
+          |
+          v
+    Retire legacy schema
+
+This assignment implements the normalized schema and the migration write path.
+
+The final consumer migration, rollback period, and retirement of the legacy
+schema would depend on the production rollout strategy.
+
+
+## Known Limitations / Open Items
+
+### MetadataID collision handling
+
+The current 64-bit hash-based identifier does not provide a mathematical
+uniqueness guarantee.
+
+A production system requiring strict collision-safe identity should use a wider
+identifier or introduce explicit collision handling.
+
+
+### Production deployment configuration
+
+The standalone server still requires production ClickHouse configuration before
+it can operate as a complete deployable service.
+
+
+### Legacy-table retirement
+
+Dual-writing is intended as a temporary migration mechanism.
+
+The exact cutover point and retention period for the legacy tables depend on
+downstream consumer migration and rollout strategy.
+
+
+### Remaining metric types
+
+Histogram, ExponentialHistogram, and Summary continue to use the existing schema.
+
+The normalization approach can be extended to them in a future iteration.
+
+
+## Testing
+
+The implementation includes unit and integration tests covering:
+
+- metadata identity generation
+- Gauge and Sum identity separation
+- metadata and data-point mapping
+- cache behavior
+- backward compatibility with existing writes
+- normalized schema creation and persistence
+- end-to-end gRPC ingestion through ClickHouse
+- metadata update and deduplication behavior
+
 ## References
 
 - [OpenTelemetry Metrics](https://opentelemetry.io/docs/concepts/signals/metrics/)

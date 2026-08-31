@@ -7,6 +7,7 @@ import (
 	"log"
 	"log/slog"
 	"net"
+	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -22,7 +23,7 @@ var (
 	maxReceiveMessageSize = flag.Int("maxReceiveMessageSize", 16777216, "The max message size in bytes the server can receive")
 )
 
-const name = "dash0.com/otlp-log-processor-backend"
+const name = "dash0.com/otlp-metrics-processor-backend"
 
 var (
 	meter                  = otel.Meter(name)
@@ -48,35 +49,52 @@ func main() {
 
 func run() (err error) {
 	slog.SetDefault(logger)
-	logger.Info("Starting application")
+	logger.Info("starting application")
 
 	// Set up OpenTelemetry.
 	otelShutdown, err := setupOTelSDK(context.Background())
 	if err != nil {
+		slog.Error("setting up OpenTelemetry SDK failed", slog.Any("error", err))
 		return
 	}
 
 	// Handle shutdown properly so nothing leaks.
 	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
+		slog.Info("shutting down")
+		if shutdownErr := otelShutdown(context.Background()); shutdownErr != nil {
+			slog.Error("OpenTelemetry shutdown failed", slog.Any("error", shutdownErr))
+			err = errors.Join(err, shutdownErr)
+		}
 	}()
 
 	flag.Parse()
 
-	slog.Debug("Starting listener", slog.String("listenAddr", *listenAddr))
+	slog.Info("starting listener", slog.String("listenAddr", *listenAddr))
 	listener, err := net.Listen("tcp", *listenAddr)
 	if err != nil {
+		slog.Error("starting listener failed", slog.String("listenAddr", *listenAddr), slog.Any("error", err))
 		return err
 	}
+	slog.Info("listener started", slog.String("listenAddr", *listenAddr))
 
 	grpcServer := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.MaxRecvMsgSize(*maxReceiveMessageSize),
 		grpc.Creds(insecure.NewCredentials()),
 	)
-	colmetricspb.RegisterMetricsServiceServer(grpcServer, newServer(*listenAddr, nil))
 
-	slog.Debug("Starting gRPC server")
+	// TODO: wire up a real ClickHouseMetricsStore here instead of nil - until
+	// then, every received metric is silently dropped (see README's Known
+	// Limitations). This warning is the one signal an operator currently has
+	// that nothing is being persisted.
+	slog.Warn("no ClickHouse store configured - received metrics will not be persisted")
+	colmetricspb.RegisterMetricsServiceServer(grpcServer, newServer(*listenAddr, nil, newSeriesCache(10*time.Minute)))
 
-	return grpcServer.Serve(listener)
+	slog.Info("gRPC server ready", slog.String("listenAddr", *listenAddr))
+
+	err = grpcServer.Serve(listener)
+	if err != nil {
+		slog.Error("gRPC server stopped with error", slog.Any("error", err))
+	}
+	return err
 }
